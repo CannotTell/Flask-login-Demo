@@ -6,21 +6,22 @@
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import datetime, date
 
-# app = Flask(__name__)
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Data.db'
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy()
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Data.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 
 class UserAccounts(db.Model):
     Id = db.Column(db.Integer, primary_key=True, autoincrement= True)
     UserName = db.Column(db.String(64), unique=True)
     Password = db.Column(db.String(64))
-    CreateDate = db.Column(db.DateTime, default = datetime.utcnow())
+    CreateDate = db.Column(db.Date, default = date.today())
     Remark = db.Column(db.TEXT)
+    Level = db.Column(db.Integer, default=3)
 
-    def __init__(self, UserName, Password, Remark):
+    def __init__(self, UserName='', Password='', Remark=''):
         self.UserName = UserName
         self.Password = Password
         self.Remark = Remark

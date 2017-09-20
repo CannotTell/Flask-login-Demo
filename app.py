@@ -1,6 +1,10 @@
 from flask import *
 from flask_login import UserMixin, LoginManager, login_required, current_user, login_user, logout_user
-from db.db_Models import UserAccounts, db, LoginLog
+from db.db_Models import UserAccounts, db, LoginLog, DataLog
+import requests
+import flask_admin as admin
+from db.adminModel import UserAccountsAdmin, LoginLogAdmin, DataLogAdmin, MyView
+from functools import wraps
 
 
 app = Flask(__name__)
@@ -18,6 +22,25 @@ login_manager.login_view = "login"
 login_manager.login_message = "Please LOG IN"
 login_manager.login_message_category = "info"
 
+admin = admin.Admin(app, name=u'后台管理系统',  index_view= MyView(name=u'首页'),template_mode='bootstrap3')
+admin.add_view(UserAccountsAdmin(UserAccounts, db.session, name=u'用户管理'))
+admin.add_view(LoginLogAdmin(LoginLog, db.session,name=u'登入日志'))
+# admin.add_view(DataLogAdmin(DataLog, db.session))
+# admin.add_view(MyView(name='首页'))
+
+
+
+
+def getIPinfo(ip):
+    url = 'http://ip.taobao.com//service/getIpInfo.php?ip={}'.format(ip)
+    data = requests.get(url)
+    if data.status_code == 200:
+        print(data.json()['code'])
+        print(data.json()['data']['country'])
+        print(data.json()['data']['region'])
+        print(data.json()['data']['city'])
+        print(data.json()['data']['county'])
+        print(data.json()['data']['isp'])
 
 def db_add(obj):
     db.session.add(obj)
@@ -47,8 +70,8 @@ def user_loader(username):
 def index():
     user_id = session.get('user_id')
     # user = UserAccounts.query.filter_by(u=user_id).first()
-    print(user_id)
-    print(current_user)
+    # print(user_id)
+    # print(current_user.UserName)
     return render_template("index.html", user=user_id)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -73,16 +96,21 @@ def login():
         login_user(user, remember=True)
         # print('Logged in successfully')
         # flash('Logged in successfully')
-        ip = request.remote_addr
-        lg = LoginLog(username, ip,'')
-        db_add(lg)
+        # ip = request.remote_addr
+        # lg = LoginLog(username, ip,'')
+        # db_add(lg)
+        # getIPinfo('112.64.153.115')
+        print(current_user)
         return redirect(url_for('index'))
+
     return render_template("login.html", error='用户名或密码错误')
 
 @app.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
+
 
 
 if __name__ == '__main__':
